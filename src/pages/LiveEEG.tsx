@@ -268,7 +268,7 @@ export const LiveEEG: React.FC = () => {
         </div>
         <h1 className="text-3xl font-semibold tracking-tight text-white mb-3">Select Input Source</h1>
         <p className="text-text-secondary max-w-md mx-auto mb-10 leading-relaxed">
-          Connect your EEG headset or run the session using simulated demo data.
+          Connect your EEG headset to your computer, or run the session using simulated demo data.
         </p>
         <div className="flex gap-4 flex-wrap justify-center">
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
@@ -300,7 +300,7 @@ export const LiveEEG: React.FC = () => {
         </motion.div>
         <h1 className="text-2xl font-semibold tracking-tight text-white mb-3">Searching for Connection...</h1>
         <p className="text-text-secondary max-w-sm mx-auto mb-6">
-          Looking for nearby EEG devices. Please ensure your device is powered on.
+          Detecting connected EEG devices. Please ensure your headset is plugged in and powered on.
         </p>
         <div style={{ display:'flex', gap:8, justifyContent:'center' }}>
           {[0, 1, 2].map(i => (
