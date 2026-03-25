@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Brain, ArrowRight } from 'lucide-react';
-import { Card, Input, Button } from '../components/UI';
+import { Brain, User, ShieldCheck } from 'lucide-react';
+import { Card, Button } from '../components/UI';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loadingRole, setLoadingRole] = useState<'subject' | 'manager' | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent, role: 'subject' | 'manager') => {
     e.preventDefault();
-    setLoading(true);
+    setLoadingRole(role);
+    localStorage.setItem('neuro_role', role);
     setTimeout(() => {
       navigate('/dashboard');
     }, 800);
@@ -25,52 +26,53 @@ export const Login: React.FC = () => {
         className="w-full max-w-sm"
       >
         <Card className="p-8 border-border-subtle bg-bg-surface-elevated">
-          <div className="flex flex-col mb-8">
-            <div className="w-10 h-10 rounded bg-white flex items-center justify-center mb-6">
-              <Brain size={20} className="text-black" />
+          <div className="flex flex-col mb-8 text-center items-center">
+            <div className="w-12 h-12 rounded bg-white flex items-center justify-center mb-6">
+              <Brain size={24} className="text-black" />
             </div>
-            <h1 className="text-xl font-medium tracking-tight text-white">Log in</h1>
-            <p className="text-text-secondary mt-1 text-sm">
-              Access the NeuroEngage monitoring system.
+            <h1 className="text-xl font-medium tracking-tight text-white mb-1">NeuroEngage Portal</h1>
+            <p className="text-text-secondary text-sm">
+              Select your authorization level to proceed.
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="flex flex-col gap-5">
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-medium text-text-secondary">Email</label>
-              <Input 
-                type="email" 
-                placeholder="Ex: teacher@institute.edu" 
-                required
-              />
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-medium text-text-secondary">Password</label>
-              <Input 
-                type="password" 
-                placeholder="Enter password" 
-                required
-              />
-            </div>
+          <div className="flex flex-col gap-4 mt-6">
+            <Button 
+              type="button" 
+              variant="outline" 
+              fullWidth 
+              disabled={loadingRole !== null}
+              onClick={(e) => handleLogin(e, 'subject')}
+              className="h-14 flex items-center justify-start gap-4 px-6 border-border-subtle hover:border-white transition-colors"
+            >
+              <User size={20} className="text-text-secondary" />
+              <div className="flex flex-col items-start leading-tight">
+                <span className="text-white font-medium">Log in as Subject</span>
+                <span className="text-xs text-text-muted font-normal">View your personal metrics</span>
+              </div>
+            </Button>
 
             <Button 
-              type="submit" 
-              variant="primary" 
+              type="button" 
+              variant="outline" 
               fullWidth 
-              disabled={loading}
-              className="mt-2 h-10"
+              disabled={loadingRole !== null}
+              onClick={(e) => handleLogin(e, 'manager')}
+              className="h-14 flex items-center justify-start gap-4 px-6 border-border-subtle hover:border-white transition-colors"
             >
-              <span className="flex items-center justify-center gap-2">
-                {loading ? 'Authenticating...' : 'Sign In'}
-                {!loading && <ArrowRight size={16} />}
-              </span>
+              <ShieldCheck size={20} className="text-text-secondary" />
+              <div className="flex flex-col items-start leading-tight">
+                <span className="text-white font-medium">Log in as Manager</span>
+                <span className="text-xs text-text-muted font-normal">Monitor all class data & history</span>
+              </div>
             </Button>
             
-            <p className="mt-4 text-sm text-text-muted">
-              Use any credentials to proceed.
-            </p>
-          </form>
+            {loadingRole && (
+              <p className="mt-4 text-sm text-center text-text-muted animate-pulse">
+                Authenticating...
+              </p>
+            )}
+          </div>
         </Card>
       </motion.div>
     </div>

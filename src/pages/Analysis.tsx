@@ -36,6 +36,9 @@ const initialSessions = [
 ];
 
 export const Analysis: React.FC = () => {
+  const role = localStorage.getItem('neuro_role') || 'manager';
+  const isManager = role === 'manager';
+
   const [sessions, setSessions] = useState(initialSessions);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -70,7 +73,9 @@ export const Analysis: React.FC = () => {
     <div className="flex flex-col gap-8 w-full animate-fade-in">
       <header className="flex justify-between items-end border-b border-border-subtle pb-6">
         <div>
-          <h1 className="text-2xl font-medium tracking-tight text-white mb-1">Analysis Library</h1>
+          <h1 className="text-2xl font-medium tracking-tight text-white mb-1">
+             {isManager ? 'Analysis Library' : 'My Session Reports'}
+          </h1>
           <p className="text-text-secondary text-sm">Review historical baselines, detailed brainwave patterns, and telemetry records.</p>
         </div>
         <div className="flex gap-2 relative">
@@ -84,7 +89,7 @@ export const Analysis: React.FC = () => {
           <button 
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md border border-border-highlight text-sm transition-all ${isUploading ? 'opacity-50 cursor-not-allowed bg-border-subtle text-text-muted' : 'text-white hover:border-white'}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${isUploading ? 'opacity-50 cursor-not-allowed bg-border-subtle text-text-muted' : 'bg-white text-black hover:opacity-90'}`}
           >
             <UploadCloud size={16} className={isUploading ? 'animate-bounce' : ''} /> 
             {isUploading ? 'Loading Data...' : 'Import Data'}

@@ -16,16 +16,24 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = 'inline-flex items-center justify-center rounded-md px-4 py-2 text-sm transition-colors focus:outline-none disabled:opacity-50 disabled:pointer-events-none';
     
     const variants = {
-      primary: 'bg-white text-black font-medium hover:bg-gray-200',
-      secondary: 'bg-bg-surface-elevated text-white hover:bg-border-subtle',
-      outline: 'bg-transparent text-white border border-border-subtle hover:border-white',
-      ghost: 'bg-transparent text-text-secondary hover:text-white',
+      primary: 'font-medium transition-opacity hover:opacity-90',
+      secondary: 'bg-bg-surface-elevated hover:bg-border-subtle',
+      outline: 'bg-transparent border border-border-subtle hover:border-white transition-colors',
+      ghost: 'bg-transparent hover:text-white transition-colors',
+    };
+
+    const variantStyles: any = {
+      primary: { backgroundColor: '#ffffff', color: '#000000', borderColor: '#ffffff', borderStyle: 'solid', borderWidth: '1px' },
+      secondary: { color: '#ffffff' },
+      outline: { color: '#ffffff' },
+      ghost: { color: '#a1a1aa' }
     };
 
     return (
       <button
         ref={ref}
         className={cn(baseStyles, variants[variant], fullWidth && 'w-full', className)}
+        style={{ ...variantStyles[variant], ...(props.style || {}) }}
         {...props}
       >
         {children}

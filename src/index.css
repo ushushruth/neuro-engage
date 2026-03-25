@@ -129,8 +129,14 @@ a:hover {
 .font-medium { font-weight: 500; }
 .font-semibold { font-weight: 600; }
 
+.text-white { color: #ffffff; }
+.text-black { color: #000000; }
 .text-subtle { color: var(--text-secondary); }
 .text-muted { color: var(--text-muted); }
+
+.bg-white { background-color: #ffffff; }
+.bg-black { background-color: #000000; }
+.border-white { border-color: #ffffff; border-style: solid; }
 
 /* Flex & Grid Layout Helpers */
 .flex { display: flex; }
