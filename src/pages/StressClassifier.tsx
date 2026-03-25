@@ -7,7 +7,7 @@ import React from 'react';
 export const StressClassifier: React.FC = () => {
   return (
     <iframe
-      src="http://localhost:5002"
+      src="https://sample-jzsc.onrender.com"
       title="EEG Stress Classifier"
       style={{
         width: '100%',
