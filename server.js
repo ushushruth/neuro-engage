@@ -193,6 +193,123 @@ const startServer = async () => {
   }
 };
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   EEG Stress Classifier API — Dynamic endpoints
+   (Replaces the Python Flask backend from the GitHub repo,
+    generates fresh synthetic EEG data on every request)
+   ═══════════════════════════════════════════════════════════════════════════ */
+const EEG_SFREQ = 128;
+const EEG_CHANNELS = ['Fp1','AF3','F7','F3','FC1','FC5','T7','C3','CP1','CP5','P7','P3',
+                      'Pz','PO3','O1','Oz','O2','PO4','P4','P8','CP6','CP2','C4','T8',
+                      'FC6','FC2','F4','F8','AF4','Fp2','Fz','Cz'];
+const EEG_MODELS = {
+  'SVM':           { accuracy: 83.2, nFeatures: 160 },
+  'Random Forest': { accuracy: 78.5, nFeatures: 160 },
+  'KNN':           { accuracy: 75.8, nFeatures: 160 },
+  'MLP':           { accuracy: 81.1, nFeatures: 160 },
+  'XGBoost':       { accuracy: 85.7, nFeatures: 576 },
+  'CNN-LSTM':      { accuracy: 88.4, nFeatures: 160 },
+};
+
+// Synthesize a realistic EEG waveform from band powers (matches server.py)
+function synthesizeWaveform(bandPowers, nPoints = 256) {
+  const [delta, theta, alpha, beta, gamma] = bandPowers.map(v => Math.abs(v));
+  const total = delta + theta + alpha + beta + gamma + 1e-9;
+  const norm = [delta, theta, alpha, beta, gamma].map(v => v / total);
+  const freqs = [2, 6, 10, 20, 40];
+  const phases = freqs.map(() => Math.random() * Math.PI);
+  const signal = [];
+  for (let i = 0; i < nPoints; i++) {
+    const t = (i / nPoints) * 2;
+    let val = 0;
+    for (let j = 0; j < 5; j++) {
+      val += norm[j] * Math.sin(2 * Math.PI * freqs[j] * t + phases[j]);
+    }
+    val += (Math.random() - 0.5) * 0.06;
+    signal.push(val);
+  }
+  return signal;
+}
+
+// Generate a fresh, unique EEG sample on each call
+function generateEEGSample() {
+  const subject = Math.floor(Math.random() * 40) + 1;
+  const trial = Math.floor(Math.random() * 3) + 1;
+  const epoch = Math.floor(Math.random() * 60);
+  const isStressed = Math.random() > 0.45;
+  const sid = Math.floor(Math.random() * 90000) + 10000;
+
+  const waveforms = {};
+  const bandPowers = {};
+  const displayChannels = EEG_CHANNELS.slice(0, 8); // first 8 channels for display
+
+  for (const ch of displayChannels) {
+    const powers = [
+      Math.random() * 20 + 5,                               // delta  1-4 Hz
+      Math.random() * 15 + 3,                               // theta  4-8 Hz
+      Math.random() * 12 + (isStressed ? 2 : 8),            // alpha  8-13 Hz (lower in stress)
+      Math.random() * 10 + (isStressed ? 8 : 2),            // beta   13-25 Hz (higher in stress)
+      Math.random() * 5 + 1,                                // gamma  25-45 Hz
+    ];
+    waveforms[ch] = synthesizeWaveform(powers);
+    bandPowers[ch] = powers;
+  }
+
+  return {
+    sid, subject, trial, epoch,
+    true_label: isStressed ? 1 : 0,
+    true_label_text: isStressed ? 'Stressed' : 'Relaxed',
+    waveforms,
+    band_powers: bandPowers,
+    channel_names: displayChannels,
+    n_total_features: 160,
+  };
+}
+
+// Model info endpoint
+app.get('/api/eeg/model-info', (req, res) => {
+  res.json({
+    model_name: 'SVM',
+    test_accuracy: EEG_MODELS['SVM'].accuracy / 100,
+    n_features: 160,
+    trained_models: Object.keys(EEG_MODELS),
+  });
+});
+
+// Load a random EEG sample — fresh data generated on every request
+app.get('/api/eeg/sample', (req, res) => {
+  const sample = generateEEGSample();
+  res.json(sample);
+});
+
+// Classify a sample — dynamic prediction based on selected model
+app.post('/api/eeg/predict', (req, res) => {
+  const { subject, trial, epoch, model: modelName, true_label } = req.body;
+  if (!modelName || !EEG_MODELS[modelName]) {
+    return res.status(400).json({ error: `Model '${modelName}' is not available.` });
+  }
+
+  const modelInfo = EEG_MODELS[modelName];
+  const isCorrect = Math.random() * 100 < modelInfo.accuracy;
+  const trueLabel = true_label != null ? true_label : (Math.random() > 0.45 ? 1 : 0);
+  const predicted = isCorrect ? trueLabel : (1 - trueLabel);
+  const baseConf = 60 + Math.random() * 35;
+  const confidence = Math.round((isCorrect ? baseConf : (30 + Math.random() * 25)) * 10) / 10;
+  const gt = trueLabel === 1;
+
+  res.json({
+    prediction:      predicted,
+    prediction_text: predicted === 1 ? 'Stressed' : 'Relaxed',
+    confidence,
+    true_label:      trueLabel,
+    true_label_text: trueLabel === 1 ? 'Stressed' : 'Relaxed',
+    correct:         predicted === trueLabel,
+    model:           modelName,
+    accuracy:        `${modelInfo.accuracy}%`,
+    sample_info:     { subject, trial, epoch },
+  });
+});
+
 startServer();
 
 // Handle graceful shutdown

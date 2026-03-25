@@ -486,7 +486,7 @@ export const LiveEEG: React.FC = () => {
               waves: eegData 
             };
             try {
-              await fetch('http://localhost:5001/api/sessions', {
+              await fetch('https://neuro-engage.onrender.com/api/sessions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

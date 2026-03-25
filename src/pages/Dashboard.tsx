@@ -13,7 +13,7 @@ export const Dashboard: React.FC = () => {
   const [sessions, setSessions] = useState<any[]>([]);
 
   useEffect(() => {
-    const url = isManager ? `http://localhost:5001/api/sessions?managerCode=${pairingCode}` : `http://localhost:5001/api/sessions?userId=${userId}`;
+    const url = isManager ? `https://neuro-engage.onrender.com/api/sessions?managerCode=${pairingCode}` : `https://neuro-engage.onrender.com/api/sessions?userId=${userId}`;
     fetch(url)
       .then(res => res.json())
       .then(data => {

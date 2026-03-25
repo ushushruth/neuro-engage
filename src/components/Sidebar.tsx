@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Activity, Brain, User, Settings, LogOut, Disc } from 'lucide-react';
+import { Activity, Brain, User, Settings, LogOut, Disc, Zap } from 'lucide-react';
 import { cn } from './UI';
 
 export const Sidebar: React.FC = () => {
@@ -18,6 +18,7 @@ export const Sidebar: React.FC = () => {
     { icon: Activity, label: 'Live Data', path: '/eeg', roles: ['manager', 'subject'] },
     { icon: Brain, label: 'Session Reports', path: '/analysis', roles: ['manager', 'subject'] },
     { icon: User, label: 'Subjects', path: '/students', roles: ['manager'] },
+    { icon: Zap, label: 'Stress Classifier', path: '/stress-classifier', roles: ['manager', 'subject'] },
     { icon: Settings, label: 'Settings', path: '/settings', roles: ['manager', 'subject'] },
   ];
 
