@@ -1,20 +1,14 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/UI';
 import { AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { History, Download, UploadCloud, ChevronDown, ChevronUp, Activity, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const C_LOAD = '#fca5a5';     
-const C_FOCUS = '#ffffff';    
-const C_ATTENTION = '#a1a1aa'; 
+const C_LOAD = '#f87171';     
+const C_FOCUS = '#818cf8';    
+const C_ATTENTION = '#c084fc'; 
 
-const monthlyData = [
-  { date: 'Mar 1', load: 65, focus: 78, attention: 82 },
-  { date: 'Mar 8', load: 59, focus: 85, attention: 88 },
-  { date: 'Mar 15', load: 72, focus: 60, attention: 65 },
-  { date: 'Mar 22', load: 68, focus: 75, attention: 79 },
-  { date: 'Mar 29', load: 64, focus: 82, attention: 86 },
-];
+// Removed static monthlyData array
 
 const generateSessionWaves = (seed: number) => {
   return Array.from({ length: 40 }, (_, i) => {
@@ -28,25 +22,77 @@ const generateSessionWaves = (seed: number) => {
   });
 };
 
-const initialSessions = [
-  { id: 'SES-092', date: 'Today, 10:00 AM', duration: '45m', avgStress: 'High', avgFocus: '82%', waves: generateSessionWaves(1) },
-  { id: 'SES-091', date: 'Yesterday, 2:15 PM', duration: '1h 10m', avgStress: 'Neutral', avgFocus: '91%', waves: generateSessionWaves(2) },
-  { id: 'SES-090', date: 'Mar 22, 9:00 AM', duration: '50m', avgStress: 'Elevated', avgFocus: '78%', waves: generateSessionWaves(3) },
-  { id: 'SES-089', date: 'Mar 21, 1:30 PM', duration: '35m', avgStress: 'Neutral', avgFocus: '88%', waves: generateSessionWaves(4) },
-];
+// Removed static initialSessions array
 
 export const Analysis: React.FC = () => {
   const role = localStorage.getItem('neuro_role') || 'manager';
+  const userId = localStorage.getItem('neuro_user') || '';
   const isManager = role === 'manager';
 
-  const [sessions, setSessions] = useState(initialSessions);
+  const [sessions, setSessions] = useState<any[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const pairingCode = localStorage.getItem('neuro_pairing_code');
+    const url = isManager ? `http://localhost:5001/api/sessions?managerCode=${pairingCode}` : `http://localhost:5001/api/sessions?userId=${userId}`;
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (data && Array.isArray(data)) {
+          const mapped = data.map((s: any) => ({
+            id: 'SES-' + s._id.slice(-4).toUpperCase(),
+            date: new Date(s.date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }),
+            duration: s.duration || 'Live Recording',
+            avgStress: s.avgStress,
+            avgFocus: s.avgFocus,
+            waves: s.waves,
+            context: s.context
+          }));
+          setSessions(mapped);
+        }
+      })
+      .catch(err => console.error('Failed to fetch from MongoDB:', err));
+  }, []);
+
   const toggleDetails = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
   };
+
+  const chartData = React.useMemo(() => {
+    if (!sessions || sessions.length === 0) return [];
+
+    const chronological = [...sessions].reverse();
+    const groupedByDate: Record<string, { loadSum: number, focusSum: number, attentionSum: number, count: number }> = {};
+    
+    chronological.forEach(s => {
+      const dateStr = s.date ? s.date.split(',')[0] : 'Unknown';
+      
+      const load = s.avgStress === 'High' ? 85 : s.avgStress === 'Elevated' ? 65 : 45;
+      const focus = parseInt(String(s.avgFocus || '50').replace('%',''));
+      const attention = focus > 0 ? Math.min(100, focus + 5) : 0;
+
+      if (!groupedByDate[dateStr]) {
+        groupedByDate[dateStr] = { loadSum: 0, focusSum: 0, attentionSum: 0, count: 0 };
+      }
+      
+      groupedByDate[dateStr].loadSum += load;
+      groupedByDate[dateStr].focusSum += focus;
+      groupedByDate[dateStr].attentionSum += attention;
+      groupedByDate[dateStr].count += 1;
+    });
+
+    return Object.keys(groupedByDate).map(date => {
+      const g = groupedByDate[date];
+      return {
+        date: date,
+        load: Math.round(g.loadSum / g.count),
+        focus: Math.round(g.focusSum / g.count),
+        attention: Math.round(g.attentionSum / g.count)
+      };
+    });
+  }, [sessions]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -141,16 +187,22 @@ export const Analysis: React.FC = () => {
           <CardContent className="h-80 p-6 pt-0 border-t border-border-subtle mt-2">
             <div className="w-full h-full mt-6">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={monthlyData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#52525b', fontSize: 12 }} dy={15} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#52525b', fontSize: 12 }} domain={[40, 100]} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#0a0a0a', borderColor: '#27272a', borderRadius: '4px' }}
-                  />
-                  <Area type="monotone" name="Cognitive Load" dataKey="load" stroke={C_LOAD} fillOpacity={0.1} fill={C_LOAD} isAnimationActive={false} strokeWidth={1} />
-                  <Area type="monotone" name="Focus" dataKey="focus" stroke={C_FOCUS} fillOpacity={0} isAnimationActive={false} strokeWidth={1} />
-                  <Area type="monotone" name="Attention" dataKey="attention" stroke={C_ATTENTION} fillOpacity={0} isAnimationActive={false} strokeWidth={1} strokeDasharray="3 3" />
-                </AreaChart>
+                {chartData.length > 0 ? (
+                  <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#52525b', fontSize: 12 }} dy={15} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#52525b', fontSize: 12 }} domain={[0, 100]} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#0a0a0a', borderColor: '#27272a', borderRadius: '4px' }}
+                    />
+                    <Area type="monotone" name="Cognitive Load" dataKey="load" stroke={C_LOAD} fillOpacity={0.1} fill={C_LOAD} isAnimationActive={false} strokeWidth={1} />
+                    <Area type="monotone" name="Focus" dataKey="focus" stroke={C_FOCUS} fillOpacity={0} isAnimationActive={false} strokeWidth={1} />
+                    <Area type="monotone" name="Attention" dataKey="attention" stroke={C_ATTENTION} fillOpacity={0} isAnimationActive={false} strokeWidth={1} strokeDasharray="3 3" />
+                  </AreaChart>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-text-muted text-sm border border-dashed border-border-subtle rounded-md">
+                    No chronological baseline metrics captured yet.
+                  </div>
+                )}
               </ResponsiveContainer>
             </div>
           </CardContent>
@@ -167,9 +219,9 @@ export const Analysis: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-border-subtle bg-bg-base/50">
-                  <th className="p-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">Identifier</th>
+                  <th className="p-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">Subject</th>
                   <th className="p-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">Recorded</th>
-                  <th className="p-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">Duration</th>
+                  <th className="p-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">Activity</th>
                   <th className="p-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">State</th>
                   <th className="p-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted">Focus</th>
                   <th className="p-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted text-right">Details</th>
@@ -177,15 +229,25 @@ export const Analysis: React.FC = () => {
               </thead>
               <tbody>
                 <AnimatePresence>
-                  {sessions.map((session) => (
+                  {sessions.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-text-muted border-b border-border-subtle bg-bg-surface-elevated/20">
+                        No subject telemetry records found. Waiting for authorized subjects to transmit sensor data.
+                      </td>
+                    </tr>
+                  ) : sessions.map((session) => (
                     <React.Fragment key={session.id}>
                       <tr 
                         className={`border-b border-border-subtle transition-colors cursor-pointer ${expandedId === session.id ? 'bg-border-subtle/50' : 'hover:bg-bg-surface-elevated/50'}`}
                         onClick={() => toggleDetails(session.id)}
                       >
-                        <td className="p-4 text-sm font-medium text-white">{session.id}</td>
+                        <td className="p-4 text-sm font-medium text-white">{session.context?.username || session.id}</td>
                         <td className="p-4 text-sm text-text-secondary">{session.date}</td>
-                        <td className="p-4 text-sm text-text-secondary">{session.duration}</td>
+                        <td className="p-4 text-sm text-text-secondary">
+                          {session.context?.task === 'Take a Cognitive Quiz' 
+                            ? (session.context?.battery ? `Quiz: ${session.context.battery}` : 'Cognitive Quiz')
+                            : session.context?.task || session.duration}
+                        </td>
                         <td className="p-4 text-sm">
                           <span className={`px-2 py-1 rounded text-xs font-medium border ${
                             session.avgStress === 'High' ? 'text-status-stress border-status-stress/20' :
@@ -212,6 +274,28 @@ export const Analysis: React.FC = () => {
                         >
                           <td colSpan={6} className="p-6">
                             <div className="grid grid-cols-1 gap-8 w-full max-w-5xl">
+
+                              <div className="flex flex-col gap-4 bg-bg-surface-elevated/30 p-4 rounded-md border border-border-subtle">
+                                <h4 className="text-white text-sm font-medium">Session Metadata</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                  <div>
+                                    <p className="text-text-muted text-xs uppercase tracking-wider mb-1">Detected Activity</p>
+                                    <p className="text-status-calm font-medium">{session.context?.task === 'Take a Cognitive Quiz' && session.context?.battery ? `Diagnostic: ${session.context.battery}` : session.context?.task || session.duration}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-text-muted text-xs uppercase tracking-wider mb-1">Prior Sleep</p>
+                                    <p className="text-white font-medium">{session.context?.sleep || 'Not Recorded'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-text-muted text-xs uppercase tracking-wider mb-1">Self-Reported Stress</p>
+                                    <p className="text-white font-medium">{session.context?.stress || 'Not Recorded'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-text-muted text-xs uppercase tracking-wider mb-1">Recent Caffeine</p>
+                                    <p className="text-white font-medium">{session.context?.caffeine || 'Not Recorded'}</p>
+                                  </div>
+                                </div>
+                              </div>
                               
                               <div className="flex flex-col gap-3">
                                 <h4 className="text-white text-sm font-medium flex items-center gap-2">

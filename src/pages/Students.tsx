@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Input } from '../components/UI';
 import { Search, UserCircle, ChevronDown, ChevronUp, History } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,17 +19,43 @@ const generateSubjectHistory = (seed: number) => {
   });
 };
 
-const studentsList = [
-  { name: 'Aarav Sharma', id: 'ST-001', stressLevel: 'Neutral', focus: '88%', status: 'Online', history: generateSubjectHistory(1) },
-  { name: 'Priya Patel', id: 'ST-002', stressLevel: 'High', focus: '54%', status: 'Online', history: generateSubjectHistory(2) },
-  { name: 'Rahul Singh', id: 'ST-003', stressLevel: 'Elevated', focus: '72%', status: 'Offline', history: generateSubjectHistory(3) },
-  { name: 'Neha Gupta', id: 'ST-004', stressLevel: 'Neutral', focus: '92%', status: 'Online', history: generateSubjectHistory(4) },
-  { name: 'Vikram Desai', id: 'ST-005', stressLevel: 'Neutral', focus: '85%', status: 'Offline', history: generateSubjectHistory(5) },
-];
+// Replaced static array with dynamic hook data
 
 export const Students: React.FC = () => {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [studentsList, setStudentsList] = useState<any[]>([]);
+
+  useEffect(() => {
+    const role = localStorage.getItem('neuro_role') || 'manager';
+    const isManager = role === 'manager';
+    const pairingCode = localStorage.getItem('neuro_pairing_code');
+    const userId = localStorage.getItem('neuro_user');
+
+    const url = isManager ? `http://localhost:5001/api/sessions?managerCode=${pairingCode}` : `http://localhost:5001/api/sessions?userId=${userId}`;
+    
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (data && Array.isArray(data)) {
+          const subjectMap = new Map();
+          data.forEach(s => {
+             if (!subjectMap.has(s.userId)) {
+                subjectMap.set(s.userId, {
+                   name: s.username || s.context?.username || 'Unknown Subject',
+                   id: 'ST-' + s.userId.slice(-4).toUpperCase(),
+                   stressLevel: s.avgStress || 'Neutral',
+                   focus: s.avgFocus || '0%',
+                   status: 'Offline',
+                   history: generateSubjectHistory(Math.random()) // Temporary visualizer waveform
+                });
+             }
+          });
+          setStudentsList(Array.from(subjectMap.values()));
+        }
+      })
+      .catch(err => console.error('Failed to fetch subjects:', err));
+  }, []);
 
   const toggleDetails = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
@@ -58,7 +84,11 @@ export const Students: React.FC = () => {
       </header>
 
       <div className="flex flex-col gap-4">
-        {filteredStudents.map((student, idx) => (
+        {filteredStudents.length === 0 ? (
+          <div className="p-8 text-center text-text-muted border border-dashed border-border-subtle rounded-md bg-bg-surface-elevated/20">
+            No active subjects found. Give your 6-digit Pairing Code to your subjects so they can link to your account.
+          </div>
+        ) : filteredStudents.map((student, idx) => (
           <motion.div key={student.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}>
             <Card className="flex flex-col overflow-hidden transition-colors hover:border-border-highlight">
               {/* Main Card Header (Clickable) */}

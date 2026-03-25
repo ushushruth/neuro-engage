@@ -24,11 +24,11 @@ export const Sidebar: React.FC = () => {
   const filteredNavItems = allNavItems.filter(item => item.roles.includes(role));
 
   return (
-    <aside className="w-64 h-screen border-r border-border-subtle bg-bg-base flex flex-col fixed left-0 top-0">
+    <aside style={{ width: 256, height: '100vh', position: 'fixed', left: 0, top: 0, display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg, #0a0a14 0%, #0f0f1a 100%)', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
       <div className="p-8 flex flex-col gap-1">
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-6 h-6 rounded bg-white flex items-center justify-center">
-            <Brain size={16} className="text-black" />
+          <div style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 0 12px rgba(99,102,241,0.3)' }}>
+            <Brain size={16} color="white" />
           </div>
           <h1 className="text-lg font-medium tracking-tight text-white">NeuroEngage</h1>
         </div>
@@ -46,10 +46,11 @@ export const Sidebar: React.FC = () => {
               cn(
                 "flex items-center gap-3 px-4 py-2 rounded-md transition-colors text-sm",
                 isActive 
-                  ? "bg-bg-surface-elevated text-white font-medium" 
-                  : "text-text-secondary hover:text-white hover:bg-bg-surface-elevated"
+                  ? "text-white font-medium" 
+                  : "text-text-secondary hover:text-white"
               )
             }
+            style={({ isActive }: any) => isActive ? { background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1))', border: '1px solid rgba(99,102,241,0.2)' } : { border: '1px solid transparent' }}
           >
             <item.icon size={16} strokeWidth={2} />
             {item.label}

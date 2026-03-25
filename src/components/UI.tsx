@@ -16,16 +16,16 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = 'inline-flex items-center justify-center rounded-md px-4 py-2 text-sm transition-colors focus:outline-none disabled:opacity-50 disabled:pointer-events-none';
     
     const variants = {
-      primary: 'font-medium transition-opacity hover:opacity-90',
-      secondary: 'bg-bg-surface-elevated hover:bg-border-subtle',
-      outline: 'bg-transparent border border-border-subtle hover:border-white transition-colors',
+      primary: 'font-semibold',
+      secondary: 'hover:opacity-80',
+      outline: 'bg-transparent transition-colors',
       ghost: 'bg-transparent hover:text-white transition-colors',
     };
 
     const variantStyles: any = {
-      primary: { backgroundColor: '#ffffff', color: '#000000', borderColor: '#ffffff', borderStyle: 'solid', borderWidth: '1px' },
-      secondary: { color: '#ffffff' },
-      outline: { color: '#ffffff' },
+      primary: { background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#ffffff', border: 'none', boxShadow: '0 2px 12px rgba(99,102,241,0.3)', borderRadius: 10 },
+      secondary: { color: '#ffffff', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10 },
+      outline: { color: '#ffffff', background: 'transparent', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 10 },
       ghost: { color: '#a1a1aa' }
     };
 
@@ -52,7 +52,8 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     return (
       <div
         ref={ref}
-        className={cn('bg-bg-surface-elevated rounded-md border border-border-subtle', className)}
+        className={cn('rounded-md', className)}
+        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, backdropFilter: 'blur(12px)', ...(props.style || {}) }}
         {...props}
       >
         {children}
@@ -90,10 +91,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={cn(
-            "flex h-10 w-full rounded-md border border-border-subtle bg-bg-base px-3 text-sm text-white placeholder:text-text-muted focus:border-white focus:outline-none transition-colors disabled:opacity-50",
+            "flex h-10 w-full rounded-md px-3 text-sm placeholder:text-gray-500 focus:outline-none transition-colors disabled:opacity-50",
             icon && "pl-9",
             className
           )}
+          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', color: '#ffffff', borderRadius: 10, ...(props.style || {}) }}
+          onFocus={e => { e.target.style.borderColor = 'rgba(99,102,241,0.6)'; e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)'; }}
+          onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.12)'; e.target.style.boxShadow = 'none'; }}
           {...props}
         />
       </div>

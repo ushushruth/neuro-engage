@@ -1,39 +1,40 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
 :root {
-  /* Ultra Minimal Core Colors */
-  --bg-base: #000000;
-  --bg-surface: #000000;
-  --bg-surface-elevated: #0a0a0a;
+  /* Deep Dark Base Tones (matching Login) */
+  --bg-base: #08080f;
+  --bg-surface: #0a0a14;
+  --bg-surface-elevated: #0f0f1a;
   
-  --brand-primary: #ffffff;
-  --brand-secondary: #a1a1aa; /* Zinc 400 */
-  --brand-accent: #52525b; /* Zinc 600 */
+  /* Indigo-Purple Accent System */
+  --brand-primary: #6366f1;
+  --brand-secondary: #a1a1aa;
+  --brand-accent: #8b5cf6;
   
   --text-primary: #ffffff;
   --text-secondary: #a1a1aa;
   --text-muted: #52525b;
   
-  /* Status Colors Muted */
+  /* Status Colors */
   --status-stress: #fca5a5; 
   --status-calm: #86efac; 
   --status-neutral: #93c5fd; 
   --status-anxious: #fde047; 
   
-  /* Borders */
-  --border-subtle: #27272a; /* Zinc 800 */
-  --border-highlight: #3f3f46; /* Zinc 700 */
+  /* Borders — subtle glass edges */
+  --border-subtle: rgba(255,255,255,0.08);
+  --border-highlight: rgba(255,255,255,0.14);
   
-  /* Radii - Thinner */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  /* Radii */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
   --radius-full: 9999px;
   
   /* Transitions */
-  --transition-fast: 0.1s ease-out;
-  --transition-normal: 0.2s ease-out;
+  --transition-fast: 0.15s ease-out;
+  --transition-normal: 0.25s ease-out;
 }
 
 * {
@@ -73,27 +74,32 @@ a:hover {
   color: var(--brand-secondary);
 }
 
-/* Redefine Glassmorphism as pure Minimal Flat Cards */
+/* Glassmorphism Cards (matching Login) */
 .glass-panel, .glass-card {
-  background-color: var(--bg-surface-elevated);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  box-shadow: none;
-  transition: border-color var(--transition-fast);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .glass-card:hover {
-  border-color: var(--border-highlight);
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
 }
 
-/* Gradients Removed */
+/* Gradient Text */
 .text-gradient {
-  color: var(--text-primary);
+  background: linear-gradient(135deg, #818cf8, #c084fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .bg-gradient-primary {
-  background-color: var(--brand-primary);
-  color: var(--bg-base);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #ffffff;
 }
 
 /* Minimal Animations */
