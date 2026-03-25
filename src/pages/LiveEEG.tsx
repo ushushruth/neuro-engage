@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/UI';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Activity, Target, Brain, Radio, CheckCircle2, Play, ArrowRight, BatteryMedium, BrainCircuit, WifiOff, Bluetooth, Monitor, AlertTriangle } from 'lucide-react';
+import { Activity, Target, Brain, Radio, CheckCircle2, Play, ArrowRight, BatteryMedium, BrainCircuit, WifiOff, Monitor } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const COGNITIVE_TESTS: Record<string, { q: string, options: string[] }[]> = {
@@ -264,11 +264,11 @@ export const LiveEEG: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] w-full animate-fade-in text-center px-4">
         <div className="w-20 h-20 rounded-full bg-bg-surface-elevated border border-border-subtle flex items-center justify-center mb-8 shadow-xl">
-          <Bluetooth size={32} className="text-white" />
+          <Radio size={32} className="text-white" />
         </div>
         <h1 className="text-3xl font-semibold tracking-tight text-white mb-3">Select Input Source</h1>
         <p className="text-text-secondary max-w-md mx-auto mb-10 leading-relaxed">
-          Connect a physical EEG headset via Bluetooth, or run the session using simulated demo data.
+          Connect your EEG headset or run the session using simulated demo data.
         </p>
         <div className="flex gap-4 flex-wrap justify-center">
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
@@ -276,7 +276,7 @@ export const LiveEEG: React.FC = () => {
             style={{ display:'flex', alignItems:'center', gap:12, padding:'16px 28px', borderRadius:14, fontSize:15, fontWeight:600,
               background:'linear-gradient(135deg, #6366f1, #8b5cf6)', color:'#fff', border:'none', cursor:'pointer',
               boxShadow:'0 4px 20px rgba(99,102,241,0.3)', fontFamily:'Inter, sans-serif' }}>
-            <Bluetooth size={20} /> Connect EEG Device
+            <Radio size={20} /> Connect EEG Device
           </motion.button>
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             onClick={() => setSessionState('QUESTIONNAIRE')}
@@ -296,11 +296,11 @@ export const LiveEEG: React.FC = () => {
         <motion.div animate={{ scale: [1, 1.15, 1], opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.5, repeat: Infinity }}
           className="w-24 h-24 rounded-full flex items-center justify-center mb-8"
           style={{ background:'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2))', border:'2px solid rgba(99,102,241,0.3)' }}>
-          <Bluetooth size={36} className="text-indigo-400" />
+          <Radio size={36} className="text-indigo-400" />
         </motion.div>
-        <h1 className="text-2xl font-semibold tracking-tight text-white mb-3">Scanning for EEG Devices...</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-white mb-3">Searching for Connection...</h1>
         <p className="text-text-secondary max-w-sm mx-auto mb-6">
-          Searching for nearby Bluetooth EEG headsets. Please ensure your device is powered on and in pairing mode.
+          Looking for nearby EEG devices. Please ensure your device is powered on.
         </p>
         <div style={{ display:'flex', gap:8, justifyContent:'center' }}>
           {[0, 1, 2].map(i => (
@@ -319,22 +319,17 @@ export const LiveEEG: React.FC = () => {
           style={{ background:'rgba(239,68,68,0.1)', border:'2px solid rgba(239,68,68,0.25)' }}>
           <WifiOff size={32} className="text-red-400" />
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-white mb-3">No EEG Device Found</h1>
-        <p className="text-text-secondary max-w-md mx-auto mb-4 leading-relaxed">
-          We were unable to detect any compatible EEG headsets. Please check that your device is powered on, in range, and in pairing mode.
+        <h1 className="text-2xl font-semibold tracking-tight text-white mb-3">Device Not Connected</h1>
+        <p className="text-text-secondary max-w-md mx-auto mb-8 leading-relaxed">
+          Unable to find a connected EEG device. Please check your device and try again, or continue with demo mode.
         </p>
-        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 16px', borderRadius:10, marginBottom:24,
-          background:'rgba(251,191,36,0.08)', border:'1px solid rgba(251,191,36,0.2)' }}>
-          <AlertTriangle size={16} className="text-amber-400" style={{ flexShrink:0 }} />
-          <span style={{ fontSize:13, color:'#fbbf24' }}>Supported devices: NeuroSky MindWave, Muse 2, Emotiv Insight, OpenBCI</span>
-        </div>
         <div className="flex gap-4 flex-wrap justify-center">
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             onClick={() => setSessionState('DEVICE_SCANNING')}
             style={{ display:'flex', alignItems:'center', gap:10, padding:'14px 24px', borderRadius:12, fontSize:14, fontWeight:600,
               background:'rgba(255,255,255,0.06)', color:'#fff', border:'1px solid rgba(255,255,255,0.12)', cursor:'pointer',
               fontFamily:'Inter, sans-serif' }}>
-            <Bluetooth size={16} /> Retry Scan
+            <Radio size={16} /> Try Again
           </motion.button>
           <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             onClick={() => setSessionState('QUESTIONNAIRE')}
@@ -438,7 +433,7 @@ export const LiveEEG: React.FC = () => {
               <div className="pt-4 mt-2 border-t border-border-subtle flex justify-end">
                 <Button 
                   disabled={!isQuestionnaireComplete} 
-                  onClick={() => setSessionState('HARDWARE_CHECK')}
+                  onClick={() => setSessionState('ACTIVE')}
                   className="px-6 h-10 transition-all duration-300 hover:scale-[1.03]"
                   style={{ 
                     backgroundColor: isQuestionnaireComplete ? '#ffffff' : '#27272a', 
