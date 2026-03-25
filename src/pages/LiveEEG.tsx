@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, Button } from '../components/UI';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Activity, Target, Brain, Radio, CheckCircle2, Play, ArrowRight, BatteryMedium, BrainCircuit } from 'lucide-react';
+import { Activity, Target, Brain, Radio, CheckCircle2, Play, ArrowRight, BatteryMedium, BrainCircuit, WifiOff, Bluetooth, Monitor, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const COGNITIVE_TESTS: Record<string, { q: string, options: string[] }[]> = {
@@ -162,7 +162,7 @@ const generateMockData = (points = 30) => {
   });
 };
 
-type SessionState = 'IDLE' | 'QUESTIONNAIRE' | 'HARDWARE_CHECK' | 'ACTIVE' | 'COMPLETED';
+type SessionState = 'IDLE' | 'CONNECTION_SELECT' | 'DEVICE_SCANNING' | 'DEVICE_FAILED' | 'QUESTIONNAIRE' | 'HARDWARE_CHECK' | 'ACTIVE' | 'COMPLETED';
 
 export const LiveEEG: React.FC = () => {
   const [sessionState, setSessionState] = useState<SessionState>('IDLE');
@@ -235,6 +235,14 @@ export const LiveEEG: React.FC = () => {
 
   // --- Render Helpers ---
 
+  // DEVICE_SCANNING: fake scan that always fails after 3s
+  useEffect(() => {
+    if (sessionState === 'DEVICE_SCANNING') {
+      const t = setTimeout(() => setSessionState('DEVICE_FAILED'), 3500);
+      return () => clearTimeout(t);
+    }
+  }, [sessionState]);
+
   if (sessionState === 'IDLE') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] w-full animate-fade-in text-center px-4">
@@ -245,9 +253,97 @@ export const LiveEEG: React.FC = () => {
         <p className="text-text-secondary max-w-md mx-auto mb-10 leading-relaxed">
           Initialize a new live sensor telemetry session. You will be guided through a baseline pre-assessment and hardware calibration.
         </p>
-        <Button onClick={() => setSessionState('QUESTIONNAIRE')} className="h-12 px-8 text-base transition-all duration-300 hover:scale-[1.03]" style={{ backgroundColor: '#ffffff', color: '#000000', boxShadow: '0 0 25px rgba(255,255,255,0.25)' }}>
+        <Button onClick={() => setSessionState('CONNECTION_SELECT')} className="h-12 px-8 text-base transition-all duration-300 hover:scale-[1.03]" style={{ backgroundColor: '#ffffff', color: '#000000', boxShadow: '0 0 25px rgba(255,255,255,0.25)' }}>
           <Play size={18} className="mr-3" /> Initialize Session
         </Button>
+      </div>
+    );
+  }
+
+  if (sessionState === 'CONNECTION_SELECT') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] w-full animate-fade-in text-center px-4">
+        <div className="w-20 h-20 rounded-full bg-bg-surface-elevated border border-border-subtle flex items-center justify-center mb-8 shadow-xl">
+          <Bluetooth size={32} className="text-white" />
+        </div>
+        <h1 className="text-3xl font-semibold tracking-tight text-white mb-3">Select Input Source</h1>
+        <p className="text-text-secondary max-w-md mx-auto mb-10 leading-relaxed">
+          Connect a physical EEG headset via Bluetooth, or run the session using simulated demo data.
+        </p>
+        <div className="flex gap-4 flex-wrap justify-center">
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={() => setSessionState('DEVICE_SCANNING')}
+            style={{ display:'flex', alignItems:'center', gap:12, padding:'16px 28px', borderRadius:14, fontSize:15, fontWeight:600,
+              background:'linear-gradient(135deg, #6366f1, #8b5cf6)', color:'#fff', border:'none', cursor:'pointer',
+              boxShadow:'0 4px 20px rgba(99,102,241,0.3)', fontFamily:'Inter, sans-serif' }}>
+            <Bluetooth size={20} /> Connect EEG Device
+          </motion.button>
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={() => setSessionState('QUESTIONNAIRE')}
+            style={{ display:'flex', alignItems:'center', gap:12, padding:'16px 28px', borderRadius:14, fontSize:15, fontWeight:600,
+              background:'rgba(255,255,255,0.08)', color:'#fff', border:'1px solid rgba(255,255,255,0.15)', cursor:'pointer',
+              backdropFilter:'blur(10px)', fontFamily:'Inter, sans-serif' }}>
+            <Monitor size={20} /> Demo Mode
+          </motion.button>
+        </div>
+      </div>
+    );
+  }
+
+  if (sessionState === 'DEVICE_SCANNING') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] w-full animate-fade-in text-center px-4">
+        <motion.div animate={{ scale: [1, 1.15, 1], opacity: [0.7, 1, 0.7] }} transition={{ duration: 1.5, repeat: Infinity }}
+          className="w-24 h-24 rounded-full flex items-center justify-center mb-8"
+          style={{ background:'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2))', border:'2px solid rgba(99,102,241,0.3)' }}>
+          <Bluetooth size={36} className="text-indigo-400" />
+        </motion.div>
+        <h1 className="text-2xl font-semibold tracking-tight text-white mb-3">Scanning for EEG Devices...</h1>
+        <p className="text-text-secondary max-w-sm mx-auto mb-6">
+          Searching for nearby Bluetooth EEG headsets. Please ensure your device is powered on and in pairing mode.
+        </p>
+        <div style={{ display:'flex', gap:8, justifyContent:'center' }}>
+          {[0, 1, 2].map(i => (
+            <motion.div key={i} animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity, delay: i * 0.3 }}
+              style={{ width:8, height:8, borderRadius:'50%', background:'#818cf8' }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (sessionState === 'DEVICE_FAILED') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] w-full animate-fade-in text-center px-4">
+        <div className="w-20 h-20 rounded-full flex items-center justify-center mb-8"
+          style={{ background:'rgba(239,68,68,0.1)', border:'2px solid rgba(239,68,68,0.25)' }}>
+          <WifiOff size={32} className="text-red-400" />
+        </div>
+        <h1 className="text-2xl font-semibold tracking-tight text-white mb-3">No EEG Device Found</h1>
+        <p className="text-text-secondary max-w-md mx-auto mb-4 leading-relaxed">
+          We were unable to detect any compatible EEG headsets. Please check that your device is powered on, in range, and in pairing mode.
+        </p>
+        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 16px', borderRadius:10, marginBottom:24,
+          background:'rgba(251,191,36,0.08)', border:'1px solid rgba(251,191,36,0.2)' }}>
+          <AlertTriangle size={16} className="text-amber-400" style={{ flexShrink:0 }} />
+          <span style={{ fontSize:13, color:'#fbbf24' }}>Supported devices: NeuroSky MindWave, Muse 2, Emotiv Insight, OpenBCI</span>
+        </div>
+        <div className="flex gap-4 flex-wrap justify-center">
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={() => setSessionState('DEVICE_SCANNING')}
+            style={{ display:'flex', alignItems:'center', gap:10, padding:'14px 24px', borderRadius:12, fontSize:14, fontWeight:600,
+              background:'rgba(255,255,255,0.06)', color:'#fff', border:'1px solid rgba(255,255,255,0.12)', cursor:'pointer',
+              fontFamily:'Inter, sans-serif' }}>
+            <Bluetooth size={16} /> Retry Scan
+          </motion.button>
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={() => setSessionState('QUESTIONNAIRE')}
+            style={{ display:'flex', alignItems:'center', gap:10, padding:'14px 24px', borderRadius:12, fontSize:14, fontWeight:600,
+              background:'linear-gradient(135deg, #10b981, #059669)', color:'#fff', border:'none', cursor:'pointer',
+              boxShadow:'0 4px 15px rgba(16,185,129,0.3)', fontFamily:'Inter, sans-serif' }}>
+            <Monitor size={16} /> Continue with Demo
+          </motion.button>
+        </div>
       </div>
     );
   }
