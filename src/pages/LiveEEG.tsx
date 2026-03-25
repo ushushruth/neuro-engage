@@ -124,7 +124,7 @@ const QuizSidebar = ({ selectedTest, quizIndex, setQuizIndex, onSelectTest }: { 
         <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 font-medium">Q {quizIndex + 1} / {activeQuizArray.length}</span>
       </div>
       
-      <p className="text-lg font-semibold text-black leading-relaxed mb-8">{q.q}</p>
+      <p className="text-lg font-semibold text-white leading-relaxed mb-8">{q.q}</p>
       
       <div className="flex flex-col gap-3 mt-auto">
         {q.options.map((opt, i) => (
