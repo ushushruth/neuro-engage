@@ -82,15 +82,15 @@ const COGNITIVE_TESTS: Record<string, { q: string, options: string[] }[]> = {
 const QuizSidebar = ({ selectedTest, quizIndex, setQuizIndex, onSelectTest }: { selectedTest: string | null; quizIndex: number; setQuizIndex: (i: number) => void; onSelectTest: (t: string) => void }) => {
   if (!selectedTest) {
     return (
-      <Card className="h-full border-border-subtle bg-white flex flex-col p-6 min-h-[400px]">
-         <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wider mb-6">Select Cognitive Battery</h3>
+      <Card className="h-full border-border-subtle flex flex-col p-6 min-h-[400px]">
+         <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-6">Select Cognitive Battery</h3>
          <div className="flex flex-col gap-3 overflow-y-auto pr-2 pb-2">
            {Object.keys(COGNITIVE_TESTS).map((testName) => (
              <Button 
                key={testName} 
                variant="outline" 
-               className="border-gray-300 text-black hover:border-black font-medium justify-start" 
-               style={{ color: '#000000' }} 
+               className="border-white/20 text-white hover:border-white/50 font-medium justify-start" 
+               style={{ color: '#ffffff' }} 
                onClick={() => onSelectTest(testName)}
              >
                {testName} (10 Qs)
@@ -118,21 +118,21 @@ const QuizSidebar = ({ selectedTest, quizIndex, setQuizIndex, onSelectTest }: { 
   const q = activeQuizArray[quizIndex];
 
   return (
-    <Card className="h-full border-border-subtle bg-white flex flex-col p-6 min-h-[400px]">
+    <Card className="h-full border-border-subtle flex flex-col p-6 min-h-[400px]">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">{selectedTest}</h3>
-        <span className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600 font-medium">Q {quizIndex + 1} / {activeQuizArray.length}</span>
+        <h3 className="text-sm font-medium text-white/60 uppercase tracking-wider">{selectedTest}</h3>
+        <span className="text-xs bg-white/10 px-2 py-1 rounded text-white/70 font-medium">Q {quizIndex + 1} / {activeQuizArray.length}</span>
       </div>
       
-      <p className="text-lg font-semibold text-black leading-relaxed mb-8">{q.q}</p>
+      <p className="text-lg font-semibold text-white leading-relaxed mb-8">{q.q}</p>
       
       <div className="flex flex-col gap-3 mt-auto">
         {q.options.map((opt, i) => (
           <Button 
             key={i} 
             variant="outline" 
-            className="justify-start text-left h-auto py-3 px-4 border-gray-300 font-medium hover:border-black hover:bg-gray-100 transition-all"
-            style={{ color: '#000000' }}
+            className="justify-start text-left h-auto py-3 px-4 border-white/20 font-medium hover:border-white/50 hover:bg-white/10 transition-all"
+            style={{ color: '#ffffff' }}
             onClick={() => setQuizIndex(quizIndex + 1)}
           >
             {opt}
