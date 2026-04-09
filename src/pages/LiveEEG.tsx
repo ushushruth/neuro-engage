@@ -152,11 +152,15 @@ const C_ATTENTION = '#52525b';
 
 const generateMockData = (points = 30) => {
   return Array.from({ length: points }, (_, i) => {
-    const baseAlpha = Math.random() * 40 + 20;
-    const baseBeta = Math.random() * 50 + 30;
-    const baseGamma = Math.random() * 30 + 10;
-    const focusLevel = Math.min(100, Math.max(0, (baseAlpha * 1.5) - (baseBeta * 0.5) + 40));
-    const attentionLevel = Math.min(100, Math.max(0, baseGamma * 1.2 + 20));
+    // Correct scientific frequency bands (Hz)
+    const baseAlpha = Math.random() * 5 + 8;     // 8-13 Hz
+    const baseBeta = Math.random() * 12 + 13;    // 13-25 Hz
+    const baseGamma = Math.random() * 20 + 25;   // 25-45 Hz
+    const alphaNorm = (baseAlpha - 8) / 5;
+    const betaNorm = (baseBeta - 13) / 12;
+    const gammaNorm = (baseGamma - 25) / 20;
+    const focusLevel = Math.min(100, Math.max(0, (alphaNorm * 60) + ((1 - betaNorm) * 40) + (Math.random() * 10 - 5)));
+    const attentionLevel = Math.min(100, Math.max(0, (gammaNorm * 70) + (alphaNorm * 30) + (Math.random() * 10 - 5)));
 
     return { time: i, alpha: baseAlpha, beta: baseBeta, gamma: baseGamma, focus: focusLevel, attention: attentionLevel };
   });
@@ -206,11 +210,15 @@ export const LiveEEG: React.FC = () => {
       setEegData(current => {
         const newData = [...current.slice(1)];
         const lastTime = newData[newData.length - 1].time;
-        const alpha = Math.random() * 40 + 20;
-        const beta = Math.random() * 50 + 30;
-        const gamma = Math.random() * 30 + 10;
-        const focus = Math.min(100, Math.max(0, (alpha * 1.5) - (beta * 0.5) + 40));
-        const attention = Math.min(100, Math.max(0, gamma * 1.2 + 20));
+        // Correct scientific frequency bands (Hz)
+        const alpha = Math.random() * 5 + 8;     // 8-13 Hz
+        const beta = Math.random() * 12 + 13;    // 13-25 Hz
+        const gamma = Math.random() * 20 + 25;   // 25-45 Hz
+        const alphaNorm = (alpha - 8) / 5;
+        const betaNorm = (beta - 13) / 12;
+        const gammaNorm = (gamma - 25) / 20;
+        const focus = Math.min(100, Math.max(0, (alphaNorm * 60) + ((1 - betaNorm) * 40) + (Math.random() * 10 - 5)));
+        const attention = Math.min(100, Math.max(0, (gammaNorm * 70) + (alphaNorm * 30) + (Math.random() * 10 - 5)));
         
         statsRef.current.totalFocus += focus;
         statsRef.current.totalBeta += beta;
@@ -524,7 +532,7 @@ export const LiveEEG: React.FC = () => {
           Your telemetry has been successfully recorded. Here is a brief summary of your cognitive performance for this timeframe.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10 w-full max-w-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 w-full max-w-lg">
           <Card className="p-6">
             <p className="text-text-muted text-xs uppercase tracking-wider mb-2">Final Focus Score</p>
             <h3 className="text-4xl font-medium text-white tracking-tight">{(sessionAvgFocus).toFixed(0)}<span className="text-lg text-text-muted ml-1">%</span></h3>
@@ -533,6 +541,45 @@ export const LiveEEG: React.FC = () => {
             <p className="text-text-muted text-xs uppercase tracking-wider mb-2">Final Attention Span</p>
             <h3 className="text-4xl font-medium text-white tracking-tight">{(sessionAvgAttention).toFixed(0)}<span className="text-lg text-text-muted ml-1">%</span></h3>
           </Card>
+        </div>
+
+        <div className="w-full max-w-lg mb-10 text-left">
+          <h4 className="text-white font-medium mb-4 text-lg">Actionable Insights</h4>
+          <ul className="flex flex-col gap-3">
+            {(() => {
+              const stressStatus = sessionAvgBeta > 22 ? 'High' : sessionAvgBeta > 18 ? 'Elevated' : 'Neutral';
+              const insights = [];
+              
+              if (stressStatus === 'High') {
+                insights.push("Your cognitive load indicates High Stress. Step away for a mandatory 5-minute break and practice deep breathing to lower your beta waves.");
+              } else if (stressStatus === 'Elevated') {
+                insights.push("Your Stress is Elevated. Consider reducing the complexity of your current task or switching to a less demanding activity.");
+              } else {
+                insights.push("Your Stress levels are Neutral, indicating a stable and healthy cognitive load that shouldn't lead to immediate burnout.");
+              }
+
+              if (sessionAvgFocus > 70) {
+                insights.push("Excellent Focus Score! You successfully maintained a state of deep concentration. Replicate this environment for future work.");
+              } else if (sessionAvgFocus < 50) {
+                insights.push(`Your Focus Score was low (${Math.round(sessionAvgFocus)}%). Try turning off mobile notifications to minimize environmental distractions.`);
+              } else {
+                insights.push("Your Focus Score is moderate. Using the Pomodoro technique (25m work / 5m rest) could help elevate your concentration levels.");
+              }
+
+              if (sessionAvgAttention > 70) {
+                insights.push("Great Attention Span! Your brain is efficiently processing external stimuli without significant drops in attention.");
+              } else if (sessionAvgAttention < 50) {
+                insights.push(`Your Attention Span dropped to ${Math.round(sessionAvgAttention)}%. A quick physical stretch or brief walk can stimulate blood flow and refresh attention.`);
+              }
+              
+              return insights.map((suggestion, idx) => (
+                <li key={idx} className="bg-[#18181b] border border-[#27272a] p-4 rounded-xl text-sm text-[#a1a1aa] leading-relaxed flex items-start gap-3 shadow-sm">
+                  <span className="text-[#86efac] font-bold mt-0.5">•</span> 
+                  {suggestion}
+                </li>
+              ));
+            })()}
+          </ul>
         </div>
 
         <Button 
@@ -568,7 +615,7 @@ export const LiveEEG: React.FC = () => {
               managerCode: localStorage.getItem('neuro_manager_code') || '',
               date: new Date(),
               duration: 'Live Session',
-              avgStress: sessionAvgBeta > 70 ? 'High' : sessionAvgBeta > 55 ? 'Elevated' : 'Neutral',
+              avgStress: sessionAvgBeta > 22 ? 'High' : sessionAvgBeta > 18 ? 'Elevated' : 'Neutral',
               avgFocus: `${(sessionAvgFocus).toFixed(0)}%`,
               context: {
                 ...answers,
@@ -610,8 +657,8 @@ export const LiveEEG: React.FC = () => {
             <Card>
               <CardContent className="p-5 flex flex-col justify-between h-full">
                 <p className="text-text-muted text-xs uppercase tracking-wider mb-2">Overall Stress</p>
-                <h3 className={`text-2xl font-medium tracking-tight ${sessionAvgBeta > 70 ? 'text-status-stress' : 'text-white'}`}>
-                  {sessionAvgBeta > 70 ? 'High' : sessionAvgBeta > 55 ? 'Elevated' : 'Neutral'}
+                <h3 className={`text-2xl font-medium tracking-tight ${sessionAvgBeta > 22 ? 'text-status-stress' : 'text-white'}`}>
+                  {sessionAvgBeta > 22 ? 'High' : sessionAvgBeta > 18 ? 'Elevated' : 'Neutral'}
                 </h3>
               </CardContent>
             </Card>
@@ -619,7 +666,7 @@ export const LiveEEG: React.FC = () => {
               <CardContent className="p-5 flex flex-col justify-between h-full">
                 <p className="text-text-muted text-xs uppercase tracking-wider mb-2">Emotion</p>
                 <h3 className="text-2xl font-medium text-white tracking-tight">
-                  {sessionAvgBeta > 70 ? 'Anxious' : sessionAvgBeta > 55 ? 'Focused' : 'Calm'}
+                  {sessionAvgBeta > 22 ? 'Anxious' : sessionAvgBeta > 18 ? 'Focused' : 'Calm'}
                 </h3>
               </CardContent>
             </Card>
