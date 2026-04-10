@@ -70,7 +70,8 @@ export const Analysis: React.FC = () => {
       const dateStr = s.date ? s.date.split(',')[0] : 'Unknown';
       
       const load = s.avgStress === 'High' ? 85 : s.avgStress === 'Elevated' ? 65 : 45;
-      const focus = parseInt(String(s.avgFocus || '50').replace('%',''));
+      const parsedFocus = parseInt(String(s.avgFocus || '50').replace('%',''));
+      const focus = isNaN(parsedFocus) ? 0 : parsedFocus;
       const attention = focus > 0 ? Math.min(100, focus + 5) : 0;
 
       if (!groupedByDate[dateStr]) {

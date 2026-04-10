@@ -24,14 +24,16 @@ export const Dashboard: React.FC = () => {
 
   const totalSessions = sessions.length;
   const highStressCount = sessions.filter(s => s.avgStress === 'High').length;
-  const avgFocusScore = totalSessions > 0 
-    ? Math.round(sessions.reduce((acc, s) => acc + parseInt(s.avgFocus || '0'), 0) / totalSessions) 
+  const validFocusScores = sessions.map(s => parseInt(s.avgFocus || '0')).filter(v => !isNaN(v));
+  const avgFocusScore = validFocusScores.length > 0 
+    ? Math.round(validFocusScores.reduce((acc, val) => acc + val, 0) / validFocusScores.length) 
     : 0;
 
   const chartData = sessions.slice(0, 7).reverse().map(s => {
     const d = new Date(s.date);
     const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
-    const focus = parseInt(s.avgFocus || '0');
+    const parsedFocus = parseInt(s.avgFocus || '0');
+    const focus = isNaN(parsedFocus) ? 0 : parsedFocus;
     const stress = s.avgStress === 'High' ? 80 : s.avgStress === 'Elevated' ? 50 : 20;
     return { day, stress, calm: focus };
   });
